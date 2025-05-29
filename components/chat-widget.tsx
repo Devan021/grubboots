@@ -34,7 +34,7 @@ export default function ChatWidget({
       id: "1",
       role: "assistant",
       content:
-        "Hey there! 👋 I'm your Grubs Warehouse style assistant. Looking for shoes, clothing, or accessories today?",
+        "Hey there! 👋 I'm your Grubs Footwear  assistant. Let me help you deciide the best footwear for you...",
       timestamp: new Date(),
     },
   ])
@@ -204,7 +204,7 @@ export default function ChatWidget({
     }
   }
 
-  const suggestions = ["Running shoes", "Winter boots", "Casual hoodies", "Workout clothes", "Fashion sneakers"]
+  const suggestions = ["Running shoes", "Winter boots", "Rain boots", "Comfort wear"]
 
   const positionClasses = {
     "bottom-right": "bottom-4 right-4",
@@ -265,10 +265,10 @@ export default function ChatWidget({
                   </div>
                 </div>
                 <div>
-                  <CardTitle className="text-lg font-bold">Grubs Style Assistant</CardTitle>
+                  <CardTitle className="text-lg font-bold">Grubs Footwear Assistant</CardTitle>
                   <p className="text-xs opacity-90 flex items-center">
                     <span className="inline-block h-2 w-2 rounded-full bg-green-300 mr-2 animate-pulse"></span>
-                    Ready to find your perfect style
+                    Ready to find your perfect footwear
                   </p>
                 </div>
               </div>
