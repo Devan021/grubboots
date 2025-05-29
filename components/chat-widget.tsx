@@ -34,7 +34,7 @@ export default function ChatWidget({
       id: "1",
       role: "assistant",
       content:
-        "Hey there! 👋 I'm your Grubs Warehouse style assistant. Looking for shoes, clothing, or accessories today?",
+        "Hi there! 👋 Welcome to Grubs Footwear! I'm here to help you find the perfect boots for your needs. What kind of activities are you planning to use them for?",
       timestamp: new Date(),
     },
   ])
@@ -204,7 +204,7 @@ export default function ChatWidget({
     }
   }
 
-  const suggestions = ["Running shoes", "Winter boots", "Casual hoodies", "Workout clothes", "Fashion sneakers"]
+  const suggestions = ["Country & Field", "Equestrian", "Walking & Gardening", "Safety Boots", "Superlite"]
 
   const positionClasses = {
     "bottom-right": "bottom-4 right-4",
@@ -224,9 +224,9 @@ export default function ChatWidget({
           }}
         >
           <div className="relative">
-            <ShoppingBag className="h-7 w-7 absolute -left-4 -top-4 text-white/90" />
+            <Footprints className="h-7 w-7 absolute -left-4 -top-4 text-white/90" />
             <MessageCircle className="h-7 w-7 text-white" />
-            <Footprints className="h-5 w-5 absolute -right-4 -bottom-4 text-white/90" />
+            <ShoppingBag className="h-5 w-5 absolute -right-4 -bottom-4 text-white/90" />
           </div>
         </Button>
       )}
@@ -268,10 +268,10 @@ export default function ChatWidget({
                   </div>
                 </div>
                 <div>
-                  <CardTitle className="text-lg font-bold">Grubs Style Assistant</CardTitle>
+                  <CardTitle className="text-lg font-bold">Grubs Footwear Assistant</CardTitle>
                   <p className="text-xs opacity-90 flex items-center">
                     <span className="inline-block h-2 w-2 rounded-full bg-green-300 mr-2 animate-pulse"></span>
-                    Ready to find your perfect style
+                    Ready to find your perfect boots
                   </p>
                 </div>
               </div>
@@ -323,7 +323,7 @@ export default function ChatWidget({
                       >
                         <div className="p-3">
                           <div className="flex items-center space-x-2 mb-2">
-                            <ShoppingBag className="h-4 w-4" style={{ color: primaryColor }} />
+                            <Footprints className="h-4 w-4" style={{ color: primaryColor }} />
                             <span className="font-medium text-sm text-white">{message.productName}</span>
                           </div>
                           <div
@@ -339,7 +339,7 @@ export default function ChatWidget({
                             className="text-xs text-black py-2 px-3 rounded-lg inline-block hover:opacity-90 transition-opacity font-medium"
                             style={{ backgroundColor: primaryColor }}
                           >
-                            View Product
+                            View Boot Details
                           </a>
                         </div>
                       </div>
@@ -427,7 +427,7 @@ export default function ChatWidget({
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about shoes, clothing..."
+                  placeholder="Ask about boots for your activities..."
                   className="flex-1 rounded-full py-6 bg-transparent text-white placeholder-gray-400"
                   style={{
                     borderColor: "rgba(231, 178, 0, 0.3)",
@@ -451,7 +451,7 @@ export default function ChatWidget({
               <div className="flex justify-center mt-2">
                 <span className="text-xs text-gray-400 flex items-center">
                   <ThumbsUp className="h-3 w-3 mr-1" />
-                  Powered by Grubs Warehouse
+                  Powered by Grubs Footwear
                 </span>
               </div>
             </div>
