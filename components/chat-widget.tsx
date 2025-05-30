@@ -6,15 +6,13 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { MessageCircle, X, Send, ShoppingBag, Footprints, ThumbsUp } from "lucide-react"
+import { MessageCircle, X, Send, Footprints, ThumbsUp } from "lucide-react"
 
 interface Message {
   id: string
   role: "user" | "assistant"
   content: string
   timestamp: Date
-  productLink?: string
-  productName?: string
 }
 
 interface ChatWidgetProps {
@@ -33,8 +31,7 @@ export default function ChatWidget({
     {
       id: "1",
       role: "assistant",
-      content:
-        "Hi there! 👋 Welcome to Grubs Footwear! I'm here to help you find the perfect boots for your needs. What kind of activities are you planning to use them for?",
+      content: "Hi there! 👋 I'm your Grubs Footwear assistant. How can I help you find the perfect boots today?",
       timestamp: new Date(),
     },
   ])
@@ -42,7 +39,6 @@ export default function ChatWidget({
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isTyping, setIsTyping] = useState(false)
-  const [showSuggestions, setShowSuggestions] = useState(true)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -52,46 +48,50 @@ export default function ChatWidget({
     scrollToBottom()
   }, [messages])
 
-  // Extract product links from messages
-  const extractProductInfo = (content: string): { link: string; name: string } | null => {
+  const linkifyText = (text: string): React.ReactNode => {
+    // Regular expression to match URLs
     const urlRegex = /(https?:\/\/[^\s]+)/g
-    const match = content.match(urlRegex)
 
-    if (match && match[0]) {
-      const url = match[0]
-      // Try to extract product name from URL or from content
-      const productNameMatch = url.match(/\/product-page\/([^/]+)/)
-      let productName = "Product"
-
-      if (productNameMatch && productNameMatch[1]) {
-        productName = productNameMatch[1]
-          .replace(/-/g, " ")
-          .split(" ")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ")
-      } else {
-        // Try to extract from content using the format in the prompt
-        const contentMatch = content.match(/our ([^–]+)–/)
-        if (contentMatch && contentMatch[1]) {
-          productName = contentMatch[1].trim()
-        }
-      }
-
-      return { link: url, name: productName }
+    // If no URLs are found, return the plain text
+    if (!text.match(urlRegex)) {
+      return text
     }
-    return null
+
+    // Split the text by URLs and map each part
+    const parts = text.split(urlRegex)
+    const matches = text.match(urlRegex) || []
+
+    return parts.map((part, index) => {
+      // Every even index is text content
+      if (index % 2 === 0) {
+        return part
+      }
+      // Every odd index is a URL
+      const url = matches[(index - 1) / 2]
+      return (
+        <a
+          key={index}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:underline"
+          style={{ wordBreak: "break-word" }}
+        >
+          {url}
+        </a>
+      )
+    })
   }
 
-  const handleSubmit = async (e: React.FormEvent | string) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e?.preventDefault?.()
 
-    const messageText = typeof e === "string" ? e : input
-    if ((!messageText.trim() && typeof e !== "string") || isLoading) return
+    if (!input.trim() || isLoading) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: messageText.trim(),
+      content: input.trim(),
       timestamp: new Date(),
     }
 
@@ -99,7 +99,6 @@ export default function ChatWidget({
     setInput("")
     setIsLoading(true)
     setIsTyping(true)
-    setShowSuggestions(false)
 
     try {
       const response = await fetch("/api/chat", {
@@ -146,26 +145,6 @@ export default function ChatWidget({
               if (data === "[DONE]") {
                 setIsLoading(false)
                 setIsTyping(false)
-
-                // Extract product info after message is complete
-                const productInfo = extractProductInfo(assistantMessage)
-                if (productInfo) {
-                  setMessages((prev) =>
-                    prev.map((msg) =>
-                      msg.id === assistantMessageObj.id
-                        ? {
-                            ...msg,
-                            content: assistantMessage,
-                            productLink: productInfo.link,
-                            productName: productInfo.name,
-                          }
-                        : msg,
-                    ),
-                  )
-                }
-
-                // Show suggestions again after a response
-                setTimeout(() => setShowSuggestions(true), 1000)
                 return
               }
 
@@ -196,15 +175,10 @@ export default function ChatWidget({
       }
       setMessages((prev) => [...prev, errorMessage])
       setIsTyping(false)
-
-      // Show suggestions again after error
-      setTimeout(() => setShowSuggestions(true), 1000)
     } finally {
       setIsLoading(false)
     }
   }
-
-  const suggestions = ["Country & Field", "Equestrian", "Walking & Gardening", "Safety Boots", "Superlite"]
 
   const positionClasses = {
     "bottom-right": "bottom-4 right-4",
@@ -226,7 +200,7 @@ export default function ChatWidget({
           <div className="relative">
             <Footprints className="h-7 w-7 absolute -left-4 -top-4 text-white/90" />
             <MessageCircle className="h-7 w-7 text-white" />
-            <ShoppingBag className="h-5 w-5 absolute -right-4 -bottom-4 text-white/90" />
+            <Footprints className="h-5 w-5 absolute -right-4 -bottom-4 text-white/90 rotate-180" />
           </div>
         </Button>
       )}
@@ -241,7 +215,7 @@ export default function ChatWidget({
           }}
         >
           <CardHeader
-            className="pb-3 text-white relative h-24 flex items-center"
+            className="pb-3 text-white relative h-20 flex items-center"
             style={{
               background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
               borderBottom: "2px solid rgba(255,255,255,0.1)",
@@ -261,17 +235,14 @@ export default function ChatWidget({
 
             <div className="flex items-center justify-between z-10 w-full">
               <div className="flex items-center space-x-3">
-                <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center p-2">
-                  <div className="relative">
-                    <ShoppingBag className="h-5 w-5 absolute -left-3 -top-3 text-white/90" />
-                    <Footprints className="h-6 w-6 text-white" />
-                  </div>
+                <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center p-2">
+                  <Footprints className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg font-bold">Grubs Footwear Assistant</CardTitle>
+                  <CardTitle className="text-lg font-bold">Grubs Footwear</CardTitle>
                   <p className="text-xs opacity-90 flex items-center">
                     <span className="inline-block h-2 w-2 rounded-full bg-green-300 mr-2 animate-pulse"></span>
-                    Ready to find your perfect boots
+                    Boot specialist ready to help
                   </p>
                 </div>
               </div>
@@ -286,11 +257,21 @@ export default function ChatWidget({
             </div>
           </CardHeader>
 
-          <CardContent className="flex flex-col h-[calc(600px-6rem)] p-0" style={{ backgroundColor: "#1A1D24" }}>
+          <CardContent className="flex flex-col h-[calc(600px-5rem)] p-0" style={{ backgroundColor: "#1A1D24" }}>
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ backgroundColor: "#1A1D24" }}>
+            <div
+              className="flex-1 overflow-y-auto p-4 space-y-4"
+              style={{
+                backgroundColor: "#1A1D24",
+                scrollbarWidth: "thin",
+                scrollbarColor: "rgba(231, 178, 0, 0.3) transparent",
+              }}
+            >
               {messages.map((message) => (
-                <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={message.id}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-4`}
+                >
                   {message.role === "assistant" && (
                     <div
                       className="h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center mr-2 mt-1"
@@ -302,48 +283,21 @@ export default function ChatWidget({
 
                   <div className="flex flex-col max-w-[80%]">
                     <div
-                      className={`p-3 rounded-2xl text-sm ${
+                      className={`p-4 rounded-2xl text-sm leading-relaxed ${
                         message.role === "user" ? "text-white rounded-tr-none" : "text-white rounded-tl-none"
                       }`}
                       style={{
                         backgroundColor: message.role === "user" ? primaryColor : "rgba(74, 73, 48, 0.8)",
                       }}
                     >
-                      {message.content}
+                      {linkifyText(message.content)}
                     </div>
-
-                    {/* Product Card */}
-                    {message.role === "assistant" && message.productLink && (
-                      <div
-                        className="mt-2 border rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-                        style={{
-                          backgroundColor: "#1A1D24",
-                          borderColor: "rgba(231, 178, 0, 0.3)",
-                        }}
-                      >
-                        <div className="p-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Footprints className="h-4 w-4" style={{ color: primaryColor }} />
-                            <span className="font-medium text-sm text-white">{message.productName}</span>
-                          </div>
-                          <div
-                            className="h-24 rounded-lg mb-2 flex items-center justify-center"
-                            style={{ backgroundColor: "rgba(74, 73, 48, 0.3)" }}
-                          >
-                            <Footprints className="h-8 w-8 text-gray-400" />
-                          </div>
-                          <a
-                            href={message.productLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-black py-2 px-3 rounded-lg inline-block hover:opacity-90 transition-opacity font-medium"
-                            style={{ backgroundColor: primaryColor }}
-                          >
-                            View Boot Details
-                          </a>
-                        </div>
-                      </div>
-                    )}
+                    <div className="text-xs text-gray-400 mt-1 px-2">
+                      {new Intl.DateTimeFormat("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }).format(message.timestamp)}
+                    </div>
                   </div>
 
                   {message.role === "user" && (
@@ -393,25 +347,6 @@ export default function ChatWidget({
                 </div>
               )}
 
-              {/* Quick Suggestions */}
-              {showSuggestions && !isTyping && messages.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-4">
-                  {suggestions.map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      onClick={() => handleSubmit(suggestion)}
-                      className="text-white text-xs py-1.5 px-3 rounded-full transition-colors flex items-center space-x-1 hover:opacity-80"
-                      style={{
-                        backgroundColor: "rgba(74, 73, 48, 0.6)",
-                        border: `1px solid ${primaryColor}`,
-                      }}
-                    >
-                      <span>{suggestion}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
               <div ref={messagesEndRef} />
             </div>
 
@@ -427,7 +362,7 @@ export default function ChatWidget({
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about boots for your activities..."
+                  placeholder="Type your message here..."
                   className="flex-1 rounded-full py-6 bg-transparent text-white placeholder-gray-400"
                   style={{
                     borderColor: "rgba(231, 178, 0, 0.3)",
