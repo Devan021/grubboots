@@ -3,7 +3,7 @@
 
 ## Test the chatbot at:
 
-**[grubboots.vercel.app](https://www.grubboots.vercel.app)**
+**[grubboots.vercel.app](http://www.grubboots.vercel.app)**
 
 
 ## Docs
